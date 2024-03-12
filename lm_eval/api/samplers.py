@@ -7,7 +7,7 @@ class ContextSampler:
         self.config = task._config
 
         self.target_delimiter = "<|assistant|>\n"
-        self.fewshot_delimiter = "<|endoftext|>"
+        self.fewshot_delimiter = ""
 
         self.doc_to_text = self.task.doc_to_text
         self.doc_to_target = self.task.doc_to_target
@@ -55,7 +55,7 @@ class ContextSampler:
                         )
                         else str(self.doc_to_choice(doc)[self.doc_to_target(doc)])
                     )
-                    + "<|end|>"
+                    + "<|end|>\n"
                     for doc in selected_docs
                 ]
             )
