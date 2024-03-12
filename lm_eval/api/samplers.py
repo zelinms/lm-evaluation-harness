@@ -6,8 +6,8 @@ class ContextSampler:
         self.task = task
         self.config = task._config
 
-        self.target_delimiter = self.config.target_delimiter
-        self.fewshot_delimiter = self.config.fewshot_delimiter
+        self.target_delimiter = "<|assistant|>\n"
+        self.fewshot_delimiter = "<|endoftext|>"
 
         self.doc_to_text = self.task.doc_to_text
         self.doc_to_target = self.task.doc_to_target
@@ -37,12 +37,12 @@ class ContextSampler:
                 [
                     # TODO: is separating doc_to_text and doc_to_target by one space always desired?
                     (
-                        self.doc_to_text(doc)
+                        "<|user|>\n" + self.doc_to_text(doc) + "<|end|>\n"
                         if (
                             self.config.doc_to_choice is None
                             or isinstance(self.doc_to_text(doc), str)
                         )
-                        else self.doc_to_choice(doc)[self.doc_to_text(doc)]
+                        else "<|user|>\n" + self.doc_to_choice(doc)[self.doc_to_text(doc)] + "<|end|>\n"
                     )
                     + self.target_delimiter
                     + (
@@ -55,6 +55,7 @@ class ContextSampler:
                         )
                         else str(self.doc_to_choice(doc)[self.doc_to_target(doc)])
                     )
+                    + "<|end|>"
                     for doc in selected_docs
                 ]
             )

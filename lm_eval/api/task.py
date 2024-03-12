@@ -943,26 +943,31 @@ class ConfigurableTask(Task):
         if description := self.config.description:
             description = utils.apply_template(self.config.description, doc)
 
+        description = f"<|system|>\n{description}<|end|>\n"
+
         if num_fewshot == 0:
             # always prepend the (possibly empty) task description
             labeled_examples = description
         else:
             labeled_examples = description + self.sampler.get_context(doc, num_fewshot)
 
+        def chat_template(x):
+            return f"<|user|>\n{x}<|end|>\n<|assistant|>\n"
+
         example = self.doc_to_text(doc)
         if self.multiple_input:
             return labeled_examples
         else:
             if isinstance(example, str):
-                return labeled_examples + example
+                return labeled_examples + chat_template(example)
             elif isinstance(example, list):
-                return [labeled_examples + ex for ex in example]
+                return [labeled_examples + chat_template(ex) for ex in example]
             elif isinstance(example, int):
                 if self.config.doc_to_choice is not None:
                     choices = self.doc_to_choice(doc)
-                    return labeled_examples + choices[example]
+                    return labeled_examples + chat_template(choices[example])
                 else:
-                    return labeled_examples + str(example)
+                    return labeled_examples + chat_template(str(example))
 
     def apply_filters(self):
         """Iterates over FilterEnsembles and applies them to instances"""
